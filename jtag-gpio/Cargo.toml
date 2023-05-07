@@ -1,0 +1,39 @@
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "jtag-gpio"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+cortex-m-rt = "0.7.3"
+cortex-m = "0.7.7"
+stm32h7xx-hal = {version = "0.14.0", features = ["stm32h747cm7","rt","usb_hs","rtc"]}
+cfg-if = "1.0.0"
+usb-device = "0.2.9"
+usbd-serial = "0.1.1"
+
+# cargo build/run
+[profile.dev]
+codegen-units = 1
+debug = 2
+debug-assertions = true # <-
+incremental = false
+opt-level = 3 # <-
+overflow-checks = true # <-
+
+# cargo build/run --release
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false # <-
+incremental = false
+# NOTE disabled to work around issue rust-lang/rust#90357
+# the bug results in log messages not having location information
+# (the line printed below the log message that contains the file-line location)
+# lto = 'fat'
+opt-level = 3 # <-
+overflow-checks = false # <-
+
+[build-dependencies]
+chrono = "0.4"
