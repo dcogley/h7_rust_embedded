@@ -3,7 +3,7 @@ pub mod device {
         core::cell::RefCell,
         cortex_m::interrupt::Mutex,
         stm32h7xx_hal::{
-            gpio::{self, gpiob, gpioh, gpiok},
+            gpio::{self, PinState, gpiob, gpioh, gpiok},
             pac,
             prelude::*,
             pwr, rcc,
@@ -36,7 +36,7 @@ pub mod device {
         pub rtc: Rtc,
         pub i2c1: I2c<pac::I2C1>,
         pub usb_device: Mutex<RefCell<UsbDevice<'a, UsbBus<USB1>>>>,
-        pub serial: Mutex<RefCell<SerialPort<'a, UsbBus<USB1>>>>,
+        pub serial: Mutex<RefCell<SerialPort<'a, UsbBus<USB1>>>>
     }
 
     impl Device<'static> {
@@ -45,7 +45,6 @@ pub mod device {
             let mut cp: cortex_m::Peripherals = cortex_m::Peripherals::take().unwrap();
 
             cp.SCB.enable_icache();
-            cp.SCB.enable_dcache(&mut cp.CPUID);
 
             // Power
             let pwr: pwr::Pwr = dp.PWR.constrain();
@@ -117,9 +116,9 @@ pub mod device {
             let mut device: Device = Device {
                 delay: delay,
                 // Configure PK5, PK6, PK7 as LEDs.
-                led_r: gpiok.pk5.into_push_pull_output(),
-                led_g: gpiok.pk6.into_push_pull_output(),
-                led_b: gpiok.pk7.into_push_pull_output(),
+                led_r: gpiok.pk5.into_push_pull_output_in_state(PinState::High),
+                led_g: gpiok.pk6.into_push_pull_output_in_state(PinState::High),
+                led_b: gpiok.pk7.into_push_pull_output_in_state(PinState::High),
                 // configure the RTC
                 rtc: Rtc::open_or_init(dp.RTC, backup.RTC, rtc::RtcClock::Lsi, &ccdr.clocks),
                 i2c1: {
@@ -140,7 +139,7 @@ pub mod device {
                         .device_class(usbd_serial::USB_CLASS_CDC)
                         .build(),
                 )),
-                serial: Mutex::new(RefCell::new(SerialPort::new(&usb_alloc))),
+                serial: Mutex::new(RefCell::new(SerialPort::new(&usb_alloc)))
             };
 
             callback(&mut device);
